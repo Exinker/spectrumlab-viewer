@@ -5,7 +5,6 @@ from typing import Callable
 
 import numpy as np
 
-from .config import FILEDIR
 from .typing import Array, NanoMeter, U
 
 
