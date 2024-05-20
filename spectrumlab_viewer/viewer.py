@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
 
+from spectrumlab_publisher import publish, LETTERS
 from spectrumlab_publisher.document import Document
 from spectrumlab_publisher.journal import Journal
-from spectrumlab_publisher.setup import setup
 
 from spectrumlab_viewer.data import Data
 from spectrumlab_viewer.line import Line
@@ -44,15 +44,22 @@ class Viewer:
     def _get_handler(self):
 
         if self.method == 'line-location':
-            @setup(journal=self.journal, document=self.document)
+
+            @publish.setup(journal=self.journal, document=self.document)
             def handler(data: Data, line: Line, dn: int = 100) -> None:
                 n0 = np.argmin(np.abs(data.wavelength - line.wavelength))
 
                 #
-                fig, axs = plt.subplots(nrows=3, figsize=(self.journal.width/2, self.journal.width*3/4), tight_layout=True, gridspec_kw={'height_ratios': [1, 1, 1.75]})
+                fig, axs = plt.subplots(nrows=3, figsize=(self.journal.width, self.journal.width*3/4), tight_layout=True, gridspec_kw={'height_ratios': [1, 1, 1.75]})
 
                 # full spectrum
                 plt.sca(axs[0])
+
+                plt.text(
+                    .05, .9,
+                    f'$\it{LETTERS[0]}$',
+                    transform=plt.gca().transAxes,
+                )
 
                 for crystal in np.unique(data.crystal):
                     number = data.number[data.crystal == crystal]
@@ -79,6 +86,12 @@ class Viewer:
                 # select line crystal
                 plt.sca(axs[1])
 
+                plt.text(
+                    .05, .9,
+                    f'$\it{LETTERS[1]}$',
+                    transform=plt.gca().transAxes,
+                )
+
                 number = data.number[data.crystal == data.crystal[n0]]
                 plt.step(
                     data.wavelength[number],
@@ -102,6 +115,12 @@ class Viewer:
 
                 # select line neighborhood
                 plt.sca(axs[2])
+
+                plt.text(
+                    .05, .9,
+                    f'$\it{LETTERS[2]}$',
+                    transform=plt.gca().transAxes,
+                )
 
                 number = data.number[(data.number > n0 - dn//2) & (data.number < n0 + dn//2)]
                 plt.step(
