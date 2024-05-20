@@ -11,7 +11,7 @@ from spectrumlab_publisher.journal import Journal
 
 from spectrumlab_viewer.data import Data
 from spectrumlab_viewer.line import Line
-from spectrumlab_viewer.typing import Array
+from spectrumlab_viewer.types import Array
 
 
 Method: TypeAlias = Literal['line-location']

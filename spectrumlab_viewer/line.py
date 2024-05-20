@@ -1,4 +1,4 @@
-from .typing import NanoMeter, Symbol
+from .types import NanoMeter, Symbol
 
 
 class Line:

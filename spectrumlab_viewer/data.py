@@ -5,7 +5,7 @@ from typing import Callable
 
 import numpy as np
 
-from .typing import Array, NanoMeter, U
+from .types import Array, NanoMeter, U
 
 
 @dataclass
