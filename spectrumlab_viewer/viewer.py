@@ -80,9 +80,6 @@ class Viewer:
                     )
                 )
 
-                plt.xlabel(r'$\lambda$, $нм$')
-                plt.ylabel('Интенсивность, отн. ед.')
-
                 # select line crystal
                 plt.sca(axs[1])
 
@@ -110,7 +107,6 @@ class Viewer:
                     )
                 )
 
-                plt.xlabel(r'$\lambda$, $нм$')
                 plt.ylabel('Интенсивность, отн. ед.')
 
                 # select line neighborhood
@@ -143,7 +139,6 @@ class Viewer:
                 )
 
                 plt.xlabel(r'$\lambda$, $нм$')
-                plt.ylabel('Интенсивность, отн. ед.')
 
                 #
                 plt.show()
