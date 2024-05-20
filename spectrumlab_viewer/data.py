@@ -5,7 +5,6 @@ from typing import Callable
 
 import numpy as np
 
-from .config import FILEDIR
 from .typing import Array, NanoMeter, U
 
 
@@ -48,8 +47,8 @@ def load_data(filename: str, filedir: str | None = None) -> Data:
 
     #
     return Data(
-        wavelength=data[:, 0],
-        intensity=data[:, 1],
-        crystal=data[:, 2],
-        clipped=data[:, 3],
+        wavelength=data[:-2048, 0],
+        intensity=data[:-2048, 1],
+        crystal=data[:-2048, 2],
+        clipped=data[:-2048, 3],
     )
