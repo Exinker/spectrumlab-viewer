@@ -9,20 +9,24 @@ from spectrumlab_viewer.viewer import Viewer, ViewerMode
 
 
 if __name__ == '__main__':
-    filedir = os.path.join('.', 'data', 'spectrum-fragment-scaler')
+    filedir = os.path.join('.', 'data', 'spectrum-fragment-with-scintillation-peak')
 
     viewer = Viewer(
-        mode=ViewerMode.spectrum_fragment_scaler,
+        mode=ViewerMode.spectrum_fragment_with_scintillation_peak,
         journal=Journal.ISSN_2073_1442,
         document=Document.article,
     )
     viewer.show(
         data=Data.load(
             filedir=filedir,
+            filenames=[
+                'spectrum.txt',
+                'scintillation-peak.txt',
+            ]
         ),
         line=Line(
-            symbol='W',
-            wavelength=315.9181,
+            symbol='Au',
+            wavelength=267.595,
         ),
         dn=100,
     )

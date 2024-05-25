@@ -14,22 +14,23 @@ from spectrumlab_viewer.line import Line
 from spectrumlab_viewer.types import Array
 
 
-class ShowerKind(Enum):
+class ViewerMode(Enum):
     spectrum_fragment_scaler = 'spectrum-fragment-scaler'
+    spectrum_fragment_with_scintillation_peak = 'spectrum-fragment-with-scintillation-peak'
 
 
-class FactoryShower:
+class FactoryKernel:
 
     def __init__(self, journal: Journal | None, document: Document | None):
         self.journal = journal
         self.document = document
 
-    def create(self, kind: ShowerKind) -> Callable[[Datum, Line, int], None]:
+    def create(self, mode: ViewerMode) -> Callable[[Datum, Line, int], None]:
 
-        if kind == ShowerKind.spectrum_fragment_scaler:
+        if mode == ViewerMode.spectrum_fragment_scaler:
 
             @publish.setup(journal=self.journal, document=self.document)
-            def shower(data: Data, line: Line, dn: int = 100) -> None:
+            def wrapped(data: Data, line: Line, dn: int = 100) -> None:
                 assert len(data) == 1, 'overlapping of spectra is not supported yet!'
 
                 datum = data[0]
@@ -129,9 +130,62 @@ class FactoryShower:
                 #
                 plt.show()
 
-            return shower
+            return wrapped
 
-        raise ValueError(f'ShowerKind: {kind} is not supported yet!')
+        if mode == ViewerMode.spectrum_fragment_with_scintillation_peak:
+
+            @publish.setup(journal=self.journal, document=self.document)
+            def wrapped(data: Data, line: Line, dn: int = 100) -> None:
+                assert len(data) == 2, 'couple of spectra are supported only!'
+
+                #
+                fig, ax = plt.subplots(figsize=(self.journal.width/3, self.journal.width/3), tight_layout=True)
+
+                # spectrum
+                datum = data[0]
+                n0 = np.argmin(np.abs(datum.wavelength - line.wavelength))
+
+                number = datum.number[(datum.number > n0 - dn//2) & (datum.number < n0 + dn//2)]
+                plt.step(
+                    datum.wavelength[number],
+                    datum.intensity[number],
+                    color='black',  linestyle='-', linewidth=1,
+                )
+
+                plt.axvline(
+                    line.wavelength,
+                    color='red', linestyle='--', linewidth=1.0,
+                )
+                plt.text(
+                    0.51, .95,
+                    f'{line}',
+                    transform=ax.transAxes,
+                    fontsize=8,
+                    ha='left', va='bottom',
+                    color='red',
+                )
+
+                # scintillation peak
+                datum = data[1]
+                n0 = np.argmin(np.abs(datum.wavelength - line.wavelength))
+
+                number = datum.number[(datum.number > n0 - dn//2) & (datum.number < n0 + dn//2)]
+                plt.step(
+                    datum.wavelength[number],
+                    datum.intensity[number],
+                    color='blue',  linestyle='-', linewidth=1,
+                )
+
+                #
+                plt.xlabel(r'$\lambda$, $нм$')
+                plt.ylabel('Интенсивность, отн. ед.')
+
+                #
+                plt.show()
+
+            return wrapped
+
+        raise ValueError(f'ViewerMode: {mode} is not supported yet!')
 
 
 # --------        utils        --------

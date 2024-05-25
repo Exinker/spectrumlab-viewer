@@ -4,26 +4,27 @@ from typing import Callable
 from spectrumlab_publisher.document import Document
 from spectrumlab_publisher.journal import Journal
 
-from .data import Data
-from .shower import FactoryShower, ShowerKind
-from .line import Line
+from spectrumlab_viewer.data import Data
+from spectrumlab_viewer.line import Line
+
+from .kernel import FactoryKernel, ViewerMode
 
 
 @dataclass
 class Viewer:
-    kind: ShowerKind
+    mode: ViewerMode
 
     journal: Journal | None = field(default=Journal.DEBUG)
     document: Document | None = field(default=None)
 
     @property
-    def handler(self) -> Callable[[Data, Line, int], None]:
-        return FactoryShower(journal=self.journal, document=self.document).create(
-            kind=self.kind,
+    def kernel(self) -> Callable[[Data, Line, int], None]:
+        return FactoryKernel(journal=self.journal, document=self.document).create(
+            mode=self.mode,
         )
 
     def show(self, data: Data, line: Line, dn: int = 100) -> None:
-        self.handler(
+        self.kernel(
             data=data,
             line=line,
             dn=dn,
