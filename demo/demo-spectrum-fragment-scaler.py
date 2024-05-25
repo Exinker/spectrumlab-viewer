@@ -1,5 +1,3 @@
-import os
-
 from spectrumlab_publisher.document import Document
 from spectrumlab_publisher.journal import Journal
 
@@ -9,8 +7,6 @@ from spectrumlab_viewer.viewer import Viewer, ViewerMode
 
 
 if __name__ == '__main__':
-    filedir = os.path.join('.', 'data', 'spectrum-fragment-scaler')
-
     viewer = Viewer(
         mode=ViewerMode.spectrum_fragment_scaler,
         journal=Journal.ISSN_2073_1442,
@@ -18,7 +14,7 @@ if __name__ == '__main__':
     )
     viewer.show(
         Data.load(
-            filedir=filedir,
+            filedir='./data/spectrum-fragment-scaler',
         ),
         line=Line(
             symbol='W',
