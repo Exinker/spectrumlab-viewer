@@ -9,7 +9,7 @@ from spectrumlab_publisher import publish, LETTERS
 from spectrumlab_publisher.document import Document
 from spectrumlab_publisher.journal import Journal
 
-from spectrumlab_viewer.data import Datum
+from spectrumlab_viewer.data import Data, Datum
 from spectrumlab_viewer.line import Line
 from spectrumlab_viewer.types import Array
 
@@ -29,7 +29,10 @@ class FactoryShower:
         if kind == ShowerKind.spectrum_fragment_scaler:
 
             @publish.setup(journal=self.journal, document=self.document)
-            def shower(datum: Datum, line: Line, dn: int = 100) -> None:
+            def shower(data: Data, line: Line, dn: int = 100) -> None:
+                assert len(data) == 1, 'overlapping of spectra is not supported yet!'
+
+                datum = data[0]
                 n0 = np.argmin(np.abs(datum.wavelength - line.wavelength))
 
                 #

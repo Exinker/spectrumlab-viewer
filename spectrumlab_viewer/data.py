@@ -1,7 +1,7 @@
 import csv
 import os
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Sequence
 
 import numpy as np
 
@@ -25,12 +25,13 @@ class Datum:
 
     # --------        factory        --------
     @classmethod
-    def load(cls, filename: str, filedir: str | None = None) -> 'Datum':
-        filedir = filedir or os.path.join('.')
+    def load(cls, filepath: str) -> 'Datum':
 
         # load
-        filepath = os.path.join(filedir, filename)
-        lines = csv.reader(open(filepath, 'r'), delimiter='\t')
+        lines = csv.reader(
+            open(filepath, 'r'),
+            delimiter='\t',
+        )
 
         # parse
         dat = []
@@ -49,6 +50,40 @@ class Datum:
             crystal=dat[:-2048, 2],
             clipped=dat[:-2048, 3],
         )
+
+
+class Data(list):
+
+    def __init__(self, __data: Sequence[Datum]):
+        super().__init__(__data)
+
+    # --------        factory        --------
+    @classmethod
+    def load(cls, filedir: str) -> 'Data':
+        filedir = filedir or os.path.join('.')
+
+        #
+        filepaths = [
+            os.path.join(filedir, filename)
+            for filename in os.listdir(filedir)
+            if filename.endswith('.txt')
+        ]
+
+        #
+        data = []
+        for filepath in filepaths:
+
+            try:
+                datum = Datum.load(filepath=filepath)
+
+            except Exception as error:
+                print(error)
+
+            else:
+                data.append(datum)
+
+        #
+        return cls(data)
 
 
 # --------        utils        --------
