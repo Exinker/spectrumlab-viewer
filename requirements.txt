@@ -1,0 +1,6 @@
+matplotlib
+numpy
+
+jupyter
+
+spectrumlab_publisher @ git+https://github.com/Exinker/spectrumlab-publisher.git
