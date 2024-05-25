@@ -28,27 +28,25 @@ class Datum:
     def load(cls, filepath: str) -> 'Datum':
 
         # load
-        lines = csv.reader(
-            open(filepath, 'r'),
-            delimiter='\t',
-        )
+        lines = csv.reader(open(filepath, 'r'), delimiter='\t')
 
         # parse
         dat = []
-        for line in lines:
-            dat.append([
-                convert(item, kernel=kernel)
-                for item, kernel in zip(line, [float, float, int, bool])
-            ])
+        for items in lines:
+            match items:
+                case wavelength, intensity:
+                    dat.append((to_float(wavelength), to_float(intensity), 0, 0))
+                case wavelength, intensity, crystal, clipped:
+                    dat.append((to_float(wavelength), to_float(intensity), int(crystal), bool(clipped)))
 
         dat = np.array(dat)
 
         #
         return Datum(
-            wavelength=dat[:-2048, 0],
-            intensity=dat[:-2048, 1],
-            crystal=dat[:-2048, 2],
-            clipped=dat[:-2048, 3],
+            wavelength=dat[:, 0],
+            intensity=dat[:, 1],
+            crystal=dat[:, 2],
+            clipped=dat[:, 3],
         )
 
 
@@ -83,7 +81,7 @@ class Data(list):
 
 
 # --------        utils        --------
-def convert(string: str, kernel: Callable = float) -> bool | int | float:
+def to_float(string: str) -> float:
     string = string.strip().replace(',', '.')
 
-    return kernel(string)
+    return float(string)
