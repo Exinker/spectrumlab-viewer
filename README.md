@@ -20,22 +20,27 @@
 from spectrumlab_publisher.document import Document
 from spectrumlab_publisher.journal import Journal
 
-from spectrumlab_viewer.data import Spectrum
+from spectrumlab_viewer.data import Data
 from spectrumlab_viewer.line import Line
-from spectrumlab_viewer.viewer import Viewer
+from spectrumlab_viewer.viewer import Viewer, ViewerMode
 
 
-viewer = Viewer(
-    journal=Journal.ISSN_2073_1442,
-    document=Document.article,
-)
-viewer.show(
-    datum=Spectrum.load(filename='noname.txt'),
-    line=Line(
-        symbol='Ni',
-        wavelength=221.6479,
-    ),
-    dn=100,
-)
+if __name__ == '__main__':
+    viewer = Viewer(
+        mode=ViewerMode.spectrum_fragment_scaler,
+        journal=Journal.ISSN_2073_1442,
+        document=Document.article,
+    )
+    viewer.show(
+        Data.load(
+            filedir='./data/spectrum-fragment-scaler',
+        ),
+        line=Line(
+            symbol='W',
+            wavelength=315.9181,
+        ),
+        dn=100,
+    )
+
 
 ```
