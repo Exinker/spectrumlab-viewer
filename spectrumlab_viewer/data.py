@@ -59,22 +59,18 @@ class Data(list):
 
     # --------        factory        --------
     @classmethod
-    def load(cls, filedir: str) -> 'Data':
+    def load(cls, filedir: str | None = None, filenames: str | None = None) -> 'Data':
         filedir = filedir or os.path.join('.')
-
-        #
-        filepaths = [
-            os.path.join(filedir, filename)
-            for filename in os.listdir(filedir)
-            if filename.endswith('.txt')
-        ]
+        filenames = filenames or [filename for filename in os.listdir(filedir) if filename.endswith('.txt')]
 
         #
         data = []
-        for filepath in filepaths:
+        for filename in filenames:
 
             try:
-                datum = Datum.load(filepath=filepath)
+                datum = Datum.load(
+                    filepath=os.path.join(filedir, filename),
+                )
 
             except Exception as error:
                 print(error)
