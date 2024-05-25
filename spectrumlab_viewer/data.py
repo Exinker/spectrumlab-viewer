@@ -8,8 +8,12 @@ import numpy as np
 from .types import Array, NanoMeter, U
 
 
+class AbstractDatum:
+    pass
+
+
 @dataclass
-class Datum:
+class Spectrum(AbstractDatum):
     wavelength: Array[NanoMeter]
     intensity: Array[U]
     crystal: Array[int]
@@ -25,7 +29,7 @@ class Datum:
 
     # --------        factory        --------
     @classmethod
-    def load(cls, filepath: str) -> 'Datum':
+    def load(cls, filepath: str) -> 'Spectrum':
 
         # load
         lines = csv.reader(open(filepath, 'r'), delimiter='\t')
@@ -42,7 +46,7 @@ class Datum:
         dat = np.array(dat)
 
         #
-        return Datum(
+        return Spectrum(
             wavelength=dat[:, 0],
             intensity=dat[:, 1],
             crystal=dat[:, 2],
@@ -52,21 +56,24 @@ class Datum:
 
 class Data(list):
 
-    def __init__(self, __data: Sequence[Datum]):
+    def __init__(self, __data: Sequence[AbstractDatum]):
         super().__init__(__data)
 
     # --------        factory        --------
     @classmethod
-    def load(cls, filedir: str | None = None, filenames: str | None = None) -> 'Data':
+    def load(cls, filedir: str | None = None, filenames: Sequence[str] | None = None, kinds: Sequence[type[AbstractDatum]] | None = None) -> 'Data':
         filedir = filedir or os.path.join('.')
         filenames = filenames or [filename for filename in os.listdir(filedir) if filename.endswith('.txt')]
 
+        kinds = kinds or [Spectrum] * len(filenames)
+        assert len(filenames) == len(kinds)
+
         #
         data = []
-        for filename in filenames:
+        for filename, kind in zip(filenames, kinds):
 
             try:
-                datum = Datum.load(
+                datum = kind.load(
                     filepath=os.path.join(filedir, filename),
                 )
 

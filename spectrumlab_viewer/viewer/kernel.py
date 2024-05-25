@@ -9,7 +9,7 @@ from spectrumlab_publisher import publish, LETTERS
 from spectrumlab_publisher.document import Document
 from spectrumlab_publisher.journal import Journal
 
-from spectrumlab_viewer.data import Data, Datum
+from spectrumlab_viewer.data import Data, Spectrum
 from spectrumlab_viewer.line import Line
 from spectrumlab_viewer.types import Array
 
@@ -25,16 +25,17 @@ class FactoryKernel:
         self.journal = journal
         self.document = document
 
-    def create(self, mode: ViewerMode) -> Callable[[Datum, Line, int], None]:
+    def create(self, mode: ViewerMode) -> Callable[[Spectrum, Line, int], None]:
 
         if mode == ViewerMode.spectrum_fragment_scaler:
 
             @publish.setup(journal=self.journal, document=self.document)
             def wrapped(data: Data, line: Line, dn: int = 100) -> None:
                 assert len(data) == 1, 'overlapping of spectra is not supported yet!'
+                assert all(isinstance(datum, Spectrum) for datum in data), 'only spectrum data are supported!'
 
-                datum = data[0]
-                n0 = np.argmin(np.abs(datum.wavelength - line.wavelength))
+                spectrum = data[0]
+                n0 = np.argmin(np.abs(spectrum.wavelength - line.wavelength))
 
                 #
                 fig, axs = plt.subplots(nrows=3, figsize=(self.journal.width, self.journal.width*3/4), tight_layout=True, gridspec_kw={'height_ratios': [1, 1, 1.75]})
@@ -48,19 +49,19 @@ class FactoryKernel:
                     transform=plt.gca().transAxes,
                 )
 
-                for crystal in np.unique(datum.crystal):
-                    number = datum.number[datum.crystal == crystal]
+                for crystal in np.unique(spectrum.crystal):
+                    number = spectrum.number[spectrum.crystal == crystal]
                     plt.step(
-                        datum.wavelength[number],
-                        datum.intensity[number],
+                        spectrum.wavelength[number],
+                        spectrum.intensity[number],
                         color='black',  linestyle='-', linewidth=0.5,
                     )
 
-                number = datum.number[datum.crystal == datum.crystal[n0]]
+                number = spectrum.number[spectrum.crystal == spectrum.crystal[n0]]
                 plt.gca().add_patch(
                     patches.Rectangle(
                         *_determine_rectandle(
-                            datum=datum,
+                            spectrum=spectrum,
                             number=number,
                         ),
                         edgecolor='red', facecolor='none', linewidth=1.0,
@@ -76,18 +77,18 @@ class FactoryKernel:
                     transform=plt.gca().transAxes,
                 )
 
-                number = datum.number[datum.crystal == datum.crystal[n0]]
+                number = spectrum.number[spectrum.crystal == spectrum.crystal[n0]]
                 plt.step(
-                    datum.wavelength[number],
-                    datum.intensity[number],
+                    spectrum.wavelength[number],
+                    spectrum.intensity[number],
                     color='black',  linestyle='-', linewidth=0.5,
                 )
 
-                number = datum.number[(n0 - dn//2 < datum.number) & (datum.number < n0 + dn//2)]
+                number = spectrum.number[(n0 - dn//2 < spectrum.number) & (spectrum.number < n0 + dn//2)]
                 plt.gca().add_patch(
                     patches.Rectangle(
                         *_determine_rectandle(
-                            datum=datum,
+                            spectrum=spectrum,
                             number=number,
                         ),
                         edgecolor='red', facecolor='none', linewidth=1.0,
@@ -105,10 +106,10 @@ class FactoryKernel:
                     transform=plt.gca().transAxes,
                 )
 
-                number = datum.number[(datum.number > n0 - dn//2) & (datum.number < n0 + dn//2)]
+                number = spectrum.number[(spectrum.number > n0 - dn//2) & (spectrum.number < n0 + dn//2)]
                 plt.step(
-                    datum.wavelength[number],
-                    datum.intensity[number],
+                    spectrum.wavelength[number],
+                    spectrum.intensity[number],
                     color='black',  linestyle='-', linewidth=1,
                 )
 
@@ -137,18 +138,19 @@ class FactoryKernel:
             @publish.setup(journal=self.journal, document=self.document)
             def wrapped(data: Data, line: Line, dn: int = 100) -> None:
                 assert len(data) == 2, 'couple of spectra are supported only!'
+                assert all(isinstance(datum, Spectrum) for datum in data), 'only spectrum data are supported!'
 
                 #
                 fig, ax = plt.subplots(figsize=(self.journal.width/3, self.journal.width/3), tight_layout=True)
 
                 # spectrum
-                datum = data[0]
-                n0 = np.argmin(np.abs(datum.wavelength - line.wavelength))
+                spectrum = data[0]
+                n0 = np.argmin(np.abs(spectrum.wavelength - line.wavelength))
 
-                number = datum.number[(datum.number > n0 - dn//2) & (datum.number < n0 + dn//2)]
+                number = spectrum.number[(spectrum.number > n0 - dn//2) & (spectrum.number < n0 + dn//2)]
                 plt.step(
-                    datum.wavelength[number],
-                    datum.intensity[number],
+                    spectrum.wavelength[number],
+                    spectrum.intensity[number],
                     color='black',  linestyle='-', linewidth=1,
                 )
 
@@ -166,13 +168,13 @@ class FactoryKernel:
                 )
 
                 # scintillation peak
-                datum = data[1]
-                n0 = np.argmin(np.abs(datum.wavelength - line.wavelength))
+                spectrum = data[1]
+                n0 = np.argmin(np.abs(spectrum.wavelength - line.wavelength))
 
-                number = datum.number[(datum.number > n0 - dn//2) & (datum.number < n0 + dn//2)]
+                number = spectrum.number[(spectrum.number > n0 - dn//2) & (spectrum.number < n0 + dn//2)]
                 plt.step(
-                    datum.wavelength[number],
-                    datum.intensity[number],
+                    spectrum.wavelength[number],
+                    spectrum.intensity[number],
                     color='blue',  linestyle='-', linewidth=1,
                 )
 
@@ -189,10 +191,10 @@ class FactoryKernel:
 
 
 # --------        utils        --------
-def _determine_rectandle(datum: Datum, number: Array[int], dy: float = 0.05):
-    x0 = min(datum.wavelength[number])
-    rx = max(datum.wavelength[number]) - x0
-    y0 = min(datum.intensity)
-    ry = max(datum.intensity) - y0
+def _determine_rectandle(spectrum: Spectrum, number: Array[int], dy: float = 0.05):
+    x0 = min(spectrum.wavelength[number])
+    rx = max(spectrum.wavelength[number]) - x0
+    y0 = min(spectrum.intensity)
+    ry = max(spectrum.intensity) - y0
 
     return (x0, y0 - ry*dy/2), rx, ry + ry*dy
