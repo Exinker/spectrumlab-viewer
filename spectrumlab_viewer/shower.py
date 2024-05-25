@@ -14,22 +14,22 @@ from spectrumlab_viewer.line import Line
 from spectrumlab_viewer.types import Array
 
 
-class Kind(Enum):
-    line_location = 'line-location'
+class ShowerKind(Enum):
+    spectrum_fragment_scaler = 'spectrum-fragment-scaler'
 
 
-class FactoryHandler:
-    
-    def __init__(self, journal: Journal | None = Journal.DEBUG, document: Document | None = None):
+class FactoryShower:
+
+    def __init__(self, journal: Journal | None, document: Document | None):
         self.journal = journal
         self.document = document
 
-    def create(self, kind: Kind) -> Callable[[Data, Line, int], None]:
+    def create(self, kind: ShowerKind) -> Callable[[Data, Line, int], None]:
 
-        if kind == Kind.line_location:
+        if kind == ShowerKind.spectrum_fragment_scaler:
 
             @publish.setup(journal=self.journal, document=self.document)
-            def handler(data: Data, line: Line, dn: int = 100) -> None:
+            def shower(data: Data, line: Line, dn: int = 100) -> None:
                 n0 = np.argmin(np.abs(data.wavelength - line.wavelength))
 
                 #
@@ -40,7 +40,7 @@ class FactoryHandler:
 
                 plt.text(
                     .05, .9,
-                    f'$\it{LETTERS[0]}$',
+                    fr'$\it{LETTERS[0]}$',
                     transform=plt.gca().transAxes,
                 )
 
@@ -68,7 +68,7 @@ class FactoryHandler:
 
                 plt.text(
                     .05, .9,
-                    f'$\it{LETTERS[1]}$',
+                    fr'$\it{LETTERS[1]}$',
                     transform=plt.gca().transAxes,
                 )
 
@@ -97,7 +97,7 @@ class FactoryHandler:
 
                 plt.text(
                     .05, .9,
-                    f'$\it{LETTERS[2]}$',
+                    fr'$\it{LETTERS[2]}$',
                     transform=plt.gca().transAxes,
                 )
 
@@ -126,9 +126,9 @@ class FactoryHandler:
                 #
                 plt.show()
 
-            return handler
+            return shower
 
-        raise ValueError(f'Kind: {kind} is not supported yet!')
+        raise ValueError(f'ShowerKind: {kind} is not supported yet!')
 
 
 # --------        utils        --------

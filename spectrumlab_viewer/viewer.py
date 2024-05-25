@@ -5,19 +5,20 @@ from spectrumlab_publisher.document import Document
 from spectrumlab_publisher.journal import Journal
 
 from .data import Data
-from .handler import FactoryHandler, Kind
+from .shower import FactoryShower, ShowerKind
 from .line import Line
 
 
 @dataclass
 class Viewer:
-    kind: Kind = field(default=Kind.line_location)
-    document: Document | None = field(default=None)
+    kind: ShowerKind
+
     journal: Journal | None = field(default=Journal.DEBUG)
+    document: Document | None = field(default=None)
 
     @property
     def handler(self) -> Callable[[Data, Line, int], None]:
-        return FactoryHandler(journal=self.journal, document=self.document).create(
+        return FactoryShower(journal=self.journal, document=self.document).create(
             kind=self.kind,
         )
 
