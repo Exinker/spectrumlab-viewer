@@ -23,9 +23,5 @@ class Viewer:
             mode=self.mode,
         )
 
-    def show(self, data: Data, line: Line, dn: int = 100) -> None:
-        self.kernel(
-            data=data,
-            line=line,
-            dn=dn,
-        )
+    def show(self, __data: Data, *args, **kwargs) -> None:
+        self.kernel(__data, *args, **kwargs)

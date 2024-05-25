@@ -17,7 +17,7 @@ if __name__ == '__main__':
         document=Document.article,
     )
     viewer.show(
-        data=Data.load(
+        Data.load(
             filedir=filedir,
             filenames=[
                 'spectrum.txt',
