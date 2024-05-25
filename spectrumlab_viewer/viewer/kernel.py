@@ -96,7 +96,7 @@ class FactoryKernel:
                     )
                 )
 
-                plt.ylabel('Интенсивность, отн. ед.')
+                plt.ylabel('Интенсивность, отн. ед.', {'style': 'italic'})
 
                 # select line neighborhood
                 plt.sca(axs[2])
@@ -127,7 +127,7 @@ class FactoryKernel:
                     color='red',
                 )
 
-                plt.xlabel(r'$\lambda$, $нм$')
+                plt.xlabel(r'$\lambda$, $нм$', {'style': 'italic'})
 
                 #
                 plt.show()
@@ -180,8 +180,8 @@ class FactoryKernel:
                 )
 
                 #
-                plt.xlabel(r'$\lambda$, $нм$')
-                plt.ylabel('Интенсивность, отн. ед.')
+                plt.xlabel(r'$\lambda$, $нм$', {'style': 'italic'})
+                plt.ylabel('Интенсивность, отн. ед.', {'style': 'italic'})
 
                 #
                 plt.show()
@@ -239,8 +239,8 @@ class FactoryKernel:
                     )
 
                 #
-                plt.xlabel(r'$t$, $c$')
-                plt.ylabel('Интенсивность, отн. ед.')
+                plt.xlabel(r'$t$, $c$', {'style': 'italic'})
+                plt.ylabel('Интенсивность, отн. ед.', {'style': 'italic'})
 
                 #
                 plt.show()

@@ -1,7 +1,7 @@
 import csv
 import os
 from dataclasses import dataclass
-from typing import Callable, Sequence
+from typing import Sequence
 
 import numpy as np
 
@@ -85,6 +85,7 @@ class Burnout(AbstractDatum):
             time=dat[:, 0],
             intensity=dat[:, 1],
         )
+
 
 # --------        data        --------
 class Data(list):
