@@ -7,6 +7,10 @@ from numpy.typing import NDArray
 Array: TypeAlias = NDArray
 
 
+# --------        time units        --------
+Second = NewType('Second', float)
+
+
 # --------        spacial units        --------
 NanoMeter = NewType('NanoMeter', float)
 

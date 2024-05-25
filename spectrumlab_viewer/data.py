@@ -5,9 +5,10 @@ from typing import Callable, Sequence
 
 import numpy as np
 
-from .types import Array, NanoMeter, U
+from .types import Array, NanoMeter, Second, U
 
 
+# --------        datum        --------
 class AbstractDatum:
     pass
 
@@ -46,7 +47,7 @@ class Spectrum(AbstractDatum):
         dat = np.array(dat)
 
         #
-        return Spectrum(
+        return cls(
             wavelength=dat[:, 0],
             intensity=dat[:, 1],
             crystal=dat[:, 2],
@@ -54,6 +55,38 @@ class Spectrum(AbstractDatum):
         )
 
 
+@dataclass
+class Burnout(AbstractDatum):
+    time: Array[Second]
+    intensity: Array[U]
+
+    @property
+    def n_times(self) -> int:
+        return len(self.time)
+
+    # --------        factory        --------
+    @classmethod
+    def load(cls, filepath: str) -> 'Burnout':
+
+        # load
+        lines = csv.reader(open(filepath, 'r'), delimiter='\t')
+
+        # parse
+        dat = []
+        for items in lines:
+            match items:
+                case time, intensity:
+                    dat.append((to_float(time), to_float(intensity)))
+
+        dat = np.array(dat)
+
+        #
+        return cls(
+            time=dat[:, 0],
+            intensity=dat[:, 1],
+        )
+
+# --------        data        --------
 class Data(list):
 
     def __init__(self, __data: Sequence[AbstractDatum]):
