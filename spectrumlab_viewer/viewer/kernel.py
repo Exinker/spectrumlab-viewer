@@ -192,7 +192,7 @@ class FactoryKernel:
         if mode == ViewerMode.burnout_with_scintillation_peaks:
 
             @publish.setup(journal=self.journal, document=self.document)
-            def wrapped(data: Data[Burnout], threshold: U, cursor: int | None = None) -> None:
+            def wrapped(data: Data[Burnout], threshold: U, t0: int) -> None:
                 assert len(data) == 1, 'overlapping of burnouts is not supported yet!'
                 assert all(isinstance(datum, Burnout) for datum in data), 'only burnout data are supported!'
 
@@ -208,12 +208,7 @@ class FactoryKernel:
                     color='black',  linestyle='-', linewidth=1,
                 )
 
-                index = []
-                for t in range(1, burnout.n_times-1):
-                    is_maxima = (burnout.intensity[t - 1] <= burnout.intensity[t] > burnout.intensity[t + 1]) or (burnout.intensity[t - 1] < burnout.intensity[t] >= burnout.intensity[t + 1])
-                    if is_maxima and (burnout.intensity[t] > threshold):
-                        index.append(t)
-
+                index = _find_blinks(burnout=burnout, threshold=threshold)
                 plt.scatter(
                     burnout.time[index],
                     burnout.intensity[index],
@@ -225,19 +220,18 @@ class FactoryKernel:
                     color='grey', linestyle='--', linewidth=0.5,
                 )
 
-                if cursor:
-                    plt.axvline(
-                        burnout.time[cursor],
-                        color='blue', linestyle='--', linewidth=1.0,
-                    )
-                    plt.text(
-                        burnout.time[cursor], max(burnout.intensity),
-                        f' t = {burnout.time[cursor]}, с',
-                        # transform=ax.transAxes,
-                        fontsize=8,
-                        ha='left', va='bottom',
-                        color='blue',
-                    )
+                plt.axvline(
+                    burnout.time[t0],
+                    color='blue', linestyle='--', linewidth=1.0,
+                )
+                plt.text(
+                    burnout.time[t0], max(burnout.intensity),
+                    f' t = {burnout.time[t0]}, с',
+                    # transform=ax.transAxes,
+                    fontsize=8,
+                    ha='left', va='bottom',
+                    color='blue',
+                )
 
                 #
                 plt.xlabel(r'$t$, $c$', {'style': 'italic'})
@@ -320,7 +314,7 @@ def _determine_rectandle(spectrum: Spectrum, number: Array[int], dy: float = 0.0
 def _find_blinks(burnout: Burnout, threshold: U) -> Array[int]:
 
     index = []
-    for t in range(burnout.n_times):
+    for t in range(1, burnout.n_times - 1):
         is_maxima = (burnout.intensity[t - 1] <= burnout.intensity[t] > burnout.intensity[t + 1]) or (burnout.intensity[t - 1] < burnout.intensity[t] >= burnout.intensity[t + 1])
         if is_maxima and (burnout.intensity[t] > threshold):
             index.append(t)
