@@ -18,6 +18,7 @@ class ViewerMode(Enum):
     spectrum_fragment_scaler = 'spectrum-fragment-scaler'
     spectrum_fragment_with_scintillation_peak = 'spectrum-fragment-with-scintillation-peak'
     burnout_with_scintillation_peaks = 'burnout-with-scintillation-peaks'
+    burnout_with_scintillation_peaks_scaled = 'burnout-with-scintillation-peaks-scaled'
 
 
 class FactoryKernel:
@@ -216,7 +217,7 @@ class FactoryKernel:
                 plt.scatter(
                     burnout.time[index],
                     burnout.intensity[index],
-                    marker='|', c='#009300', linewidths=2, alpha=.5,
+                    marker='|', c='#009300', linewidths=2,
                 )
 
                 plt.axhline(
@@ -247,6 +248,62 @@ class FactoryKernel:
 
             return wrapped
 
+        if mode == ViewerMode.burnout_with_scintillation_peaks_scaled:
+
+            @publish.setup(journal=self.journal, document=self.document)
+            def wrapped(data: Data[Burnout], threshold: U, t0: int, dt: int = 50) -> None:
+                assert len(data) == 1, 'overlapping of burnouts is not supported yet!'
+                assert all(isinstance(datum, Burnout) for datum in data), 'only burnout data are supported!'
+
+                #
+                fig, ax = plt.subplots(figsize=(self.journal.width/4, self.journal.width/3), tight_layout=True)
+
+                # burnout
+                burnout = data[0]
+
+                index = np.arange(t0 - dt//4, t0 + 3*dt//4)
+                burnout = Burnout(
+                    time=burnout.time[index],
+                    intensity=burnout.intensity[index],
+                )
+
+                plt.step(
+                    burnout.time,
+                    burnout.intensity,
+                    where='mid',
+                    color='black',  linestyle='-', linewidth=1,
+                )
+
+                blinks = _find_blinks(burnout=burnout, threshold=threshold)
+                plt.scatter(
+                    burnout.time[blinks],
+                    burnout.intensity[blinks],
+                    marker='|', c='#009300', linewidths=2
+                )
+
+                plt.axhline(
+                    threshold,
+                    color='grey', linestyle='--', linewidth=0.5,
+                )
+
+                plt.axvline(
+                    burnout.time[dt//4 - 1],
+                    color='blue', linestyle='--', linewidth=1.0,
+                )
+                plt.text(
+                    burnout.time[dt//4 - 1], max(burnout.intensity),
+                    f' t = {burnout.time[dt//4]}, с',
+                    # transform=ax.transAxes,
+                    fontsize=8,
+                    ha='left', va='bottom',
+                    color='blue',
+                )
+
+                #
+                plt.show()
+
+            return wrapped
+
         raise ValueError(f'ViewerMode: {mode} is not supported yet!')
 
 
@@ -258,3 +315,14 @@ def _determine_rectandle(spectrum: Spectrum, number: Array[int], dy: float = 0.0
     ry = max(spectrum.intensity) - y0
 
     return (x0, y0 - ry*dy/2), rx, ry + ry*dy
+
+
+def _find_blinks(burnout: Burnout, threshold: U) -> Array[int]:
+
+    index = []
+    for t in range(burnout.n_times):
+        is_maxima = (burnout.intensity[t - 1] <= burnout.intensity[t] > burnout.intensity[t + 1]) or (burnout.intensity[t - 1] < burnout.intensity[t] >= burnout.intensity[t + 1])
+        if is_maxima and (burnout.intensity[t] > threshold):
+            index.append(t)
+
+    return index
