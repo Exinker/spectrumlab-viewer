@@ -1,15 +1,20 @@
 import csv
 import os
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Sequence
 
 import numpy as np
 
-from .typing import Array, NanoMeter, U
+from .types import Array, NanoMeter, Second, U
+
+
+# --------        datum        --------
+class AbstractDatum:
+    pass
 
 
 @dataclass
-class Data:
+class Spectrum(AbstractDatum):
     wavelength: Array[NanoMeter]
     intensity: Array[U]
     crystal: Array[int]
@@ -23,32 +28,100 @@ class Data:
     def number(self) -> Array[int]:
         return np.arange(self.n_numbers)
 
+    # --------        factory        --------
+    @classmethod
+    def load(cls, filepath: str) -> 'Spectrum':
+
+        # load
+        lines = csv.reader(open(filepath, 'r'), delimiter='\t')
+
+        # parse
+        dat = []
+        for items in lines:
+            match items:
+                case wavelength, intensity:
+                    dat.append((to_float(wavelength), to_float(intensity), 0, 0))
+                case wavelength, intensity, crystal, clipped:
+                    dat.append((to_float(wavelength), to_float(intensity), int(crystal), bool(clipped)))
+
+        dat = np.array(dat)
+
+        #
+        return cls(
+            wavelength=dat[:, 0],
+            intensity=dat[:, 1],
+            crystal=dat[:, 2],
+            clipped=dat[:, 3],
+        )
+
+
+@dataclass
+class Burnout(AbstractDatum):
+    time: Array[Second]
+    intensity: Array[U]
+
+    @property
+    def n_times(self) -> int:
+        return len(self.time)
+
+    # --------        factory        --------
+    @classmethod
+    def load(cls, filepath: str) -> 'Burnout':
+
+        # load
+        lines = csv.reader(open(filepath, 'r'), delimiter='\t')
+
+        # parse
+        dat = []
+        for items in lines:
+            match items:
+                case time, intensity:
+                    dat.append((to_float(time), to_float(intensity)))
+
+        dat = np.array(dat)
+
+        #
+        return cls(
+            time=dat[:, 0],
+            intensity=dat[:, 1],
+        )
+
+# --------        data        --------
+class Data(list):
+
+    def __init__(self, __data: Sequence[AbstractDatum]):
+        super().__init__(__data)
+
+    # --------        factory        --------
+    @classmethod
+    def load(cls, filedir: str | None = None, filenames: Sequence[str] | None = None, kinds: Sequence[type[AbstractDatum]] | None = None) -> 'Data':
+        filedir = filedir or os.path.join('.')
+        filenames = filenames or [filename for filename in os.listdir(filedir) if filename.endswith('.txt')]
+
+        kinds = kinds or [Spectrum] * len(filenames)
+        assert len(filenames) == len(kinds)
+
+        #
+        data = []
+        for filename, kind in zip(filenames, kinds):
+
+            try:
+                datum = kind.load(
+                    filepath=os.path.join(filedir, filename),
+                )
+
+            except Exception as error:
+                print(error)
+
+            else:
+                data.append(datum)
+
+        #
+        return cls(data)
+
 
 # --------        utils        --------
-def convert(string: str, kernel: Callable = float) -> bool | int | float:
+def to_float(string: str) -> float:
     string = string.strip().replace(',', '.')
 
-    return kernel(string)
-
-
-def load_data(filename: str, filedir: str | None = None) -> Data:
-    filedir = filedir or os.path.join('.')
-    filepath = os.path.join(filedir, filename)
-
-    #
-    data = []
-    for line in csv.reader(open(filepath, 'r'), delimiter='\t'):
-        data.append([
-            convert(item, kernel=kernel)
-            for item, kernel in zip(line, [float, float, int, bool])
-        ])
-
-    data = np.array(data)
-
-    #
-    return Data(
-        wavelength=data[:, 0],
-        intensity=data[:, 1],
-        crystal=data[:, 2],
-        clipped=data[:, 3],
-    )
+    return float(string)

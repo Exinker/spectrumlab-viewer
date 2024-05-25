@@ -20,7 +20,7 @@
 from spectrumlab_publisher.document import Document
 from spectrumlab_publisher.journal import Journal
 
-from spectrumlab_viewer.data import load_data
+from spectrumlab_viewer.data import Spectrum
 from spectrumlab_viewer.line import Line
 from spectrumlab_viewer.viewer import Viewer
 
@@ -30,7 +30,7 @@ viewer = Viewer(
     document=Document.article,
 )
 viewer.show(
-    data=load_data(filename='noname.txt'),
+    datum=Spectrum.load(filename='noname.txt'),
     line=Line(
         symbol='Ni',
         wavelength=221.6479,

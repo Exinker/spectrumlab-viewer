@@ -20,7 +20,7 @@ setup(
     # setup directories
     packages=find_packages(),
 
-    # setup data
+    # setup datum
     package_data={
         '': ['*.txt', '*.xml', '*.csv', '*.md'],
     },
